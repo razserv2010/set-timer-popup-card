@@ -81,9 +81,9 @@ class SetTimerCard extends LitElement {
             <div class="timer-input-wrapper ${this.entityState == "set" ? "dimmed" : ""}">
               <span class="timer-setting-text"></span>
               <div class="column-titles">
-                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'hours-column' ? 'focused' : ''}">Hours</span>
-                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'minutes-column' ? 'focused' : ''}">Minutes</span>
-                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'seconds-column' ? 'focused' : ''}">Seconds</span>
+                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'hours-column' ? 'focused' : ''}">שעות</span>
+                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'minutes-column' ? 'focused' : ''}">דקות</span>
+                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'seconds-column' ? 'focused' : ''}">שניות</span>
               </div>
               <div class="timer-columns-wrapper">
                 ${this._renderColumn("hours-column", 24)}
@@ -98,15 +98,15 @@ class SetTimerCard extends LitElement {
 
           <div class="timer-action-selector ${this.entityState == "set" ? "dimmed" : ""}">
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_on" ? "timer-action-active" : ""}"
-                  id="turn_on" @click="${this._setTimerAction}" @touchstart="${this._setTimerAction}">Turn on</span>
+                  id="turn_on" @click="${this._setTimerAction}" @touchstart="${this._setTimerAction}">הפעלה</span>
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_off" ? "timer-action-active" : ""}"
-                  id="turn_off" @click="${this._setTimerAction}">Turn off</span>
+                  id="turn_off" @click="${this._setTimerAction}">יכיבוי</span>
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "toggle" ? "timer-action-active" : ""}"
                   id="toggle" @click="${this._setTimerAction}">Toggle</span>
           </div>
 
           <button class="set-timer-button" @click="${this._submitAction}">
-            ${this.entityState == "idle" ? "Set timer" : "Cancel timer"}
+            ${this.entityState == "idle" ? "הפעלת טיימר" : "ביטול טיימר"}
           </button>
         </div>
       </ha-card>
@@ -202,7 +202,7 @@ class SetTimerCard extends LitElement {
 
     // כשהטיימר רץ: אם נשארו 0 שעות – להציג תמיד 00
     if (remainingTime[0] === 0) {
-      this.hoursColumnMoveIndex = 1;
+      this.hoursColumnMoveIndex = 0;
       this.hoursChanged = false;
     } else {
       this.hoursColumnMoveIndex = remainingTime[0] + 1;
