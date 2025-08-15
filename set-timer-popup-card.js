@@ -17,14 +17,9 @@ class SetTimerCard extends LitElement {
       } else {
         this._optimisticRunning = false;   // חזרה ל-idle
         this._stopIntervalUpdater();
-        this.hoursColumnMoveIndex = 1;
-        this.minutesColumnMoveIndex = 1;
-        this.secondsColumnMoveIndex = 1;
-        this.hoursChanged = false;
-        this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
-        this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
-        this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
+        this._resetToZero();
       }
+      this.requestUpdate();
     }
   }
 
@@ -41,8 +36,8 @@ class SetTimerCard extends LitElement {
 
     this.timerAction = "";
     this.focusedColumn = null;
-    this.hoursChanged = false; // נעילה על 00 עד שבוחרים שעה > 00
-    this._optimisticRunning = false;
+    this.hoursChanged = false;       // נעילה על 00 עד שבוחרים שעה > 00
+    this._optimisticRunning = false; // הסתרת כפתורים מיד אחרי הפעלה
 
     // גיאומטריה דינמית ליישור מדויק
     this._digitHeight = null;
@@ -84,13 +79,14 @@ class SetTimerCard extends LitElement {
 
     .timer-digit-column-wrapper {
       padding: 0 16px; /* הגדלת Hitbox */
+      /* אם יש בעיית תאימות ב-mask, אפשר לבטל את השורה הבאה */
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
       z-index: 2;
-      height: 130px;               /* שומר על גובה קבוע לקונטיינר */
+      height: 130px; /* שומר על גובה קבוע לקונטיינר */
     }
     .timer-digit-column {
       display: flex; flex-direction: column;
-      height: 130px;               /* חלון הצגה */
+      height: 130px; /* חלון הצגה */
       font-size: 40px; font-family: Arial, sans-serif; transition: transform 100ms ease;
     }
     .timer-digit { text-align: center; min-width: 85px; min-height: 55px; line-height: 55px; }
@@ -111,12 +107,24 @@ class SetTimerCard extends LitElement {
   `;
 
   render() {
-    let actionClassList;
-    if (this.entityState == "set") actionClassList = "timer-action";
-    else if (this.entityState == "idle") actionClassList = "timer-action pointer-cursor";
+    // הגנות רינדור – מציג מסך "טוען" ידידותי במקום להיעלם
+    if (!this.entity) {
+      return html`
+        <ha-card class="set-timer-card">
+          <div class="timer-card-wrapper">
+            <div class="card-content timer-input-card">
+              <div class="timer-input-wrapper">
+                ${ this.cardTitle ? html`<div class="popup-title">${this.cardTitle}</div>` : "" }
+                <div style="opacity:.7;padding:8px">לא הוגדרה ישות</div>
+              </div>
+            </div>
+          </div>
+        </ha-card>
+      `;
+    }
 
-    // הגנה: ייתכן ש־_hass עדיין לא הוזרק ברינדור ראשון
     const currentAction = this._hass?.states?.[this.entity]?.attributes?.action;
+    let actionClassList = (this.entityState === "set") ? "timer-action" : "timer-action pointer-cursor";
 
     return html`
       <ha-card class="set-timer-card">
@@ -228,14 +236,21 @@ class SetTimerCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     // ברירת מחדל: 00:00:00 ממורכז
-    this.hoursColumnMoveIndex = 1;
-    this.minutesColumnMoveIndex = 1;
-    this.secondsColumnMoveIndex = 1;
+    this._resetToZero();
     if (this.entityState == "set") this._startIntervalUpdater();
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     this._stopIntervalUpdater();
+  }
+
+  _resetToZero() {
+    this.hoursColumnMoveIndex = 1;
+    this.minutesColumnMoveIndex = 1;
+    this.secondsColumnMoveIndex = 1;
+    this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
+    this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
+    this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
   }
 
   // --- חישוב זמן שנותר והזזה של העמודות למרכז ---
@@ -245,12 +260,7 @@ class SetTimerCard extends LitElement {
     const finishingTime = new Date(finishingAt);
     const remainingMs = finishingTime - new Date();
     if (remainingMs <= 0) {
-      this.hoursColumnMoveIndex = 1;
-      this.minutesColumnMoveIndex = 1;
-      this.secondsColumnMoveIndex = 1;
-      this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
-      this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
-      this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
+      this._resetToZero();
       return;
     }
 
@@ -413,7 +423,7 @@ class SetTimerCard extends LitElement {
         duration: `${pad(hVal)}:${pad(mVal)}:${pad(sVal)}`, // HH:MM:SS
       });
 
-      // נרצה לראות לייב – לא נסגור את הפופאפ אוטומטית
+      // נשאיר את הפופאפ פתוח כדי לראות לייב
       this._startIntervalUpdater();
       this.focusedColumn = null;
       setTimeout(() => this.requestUpdate(), 200);
@@ -421,13 +431,7 @@ class SetTimerCard extends LitElement {
       this._stopIntervalUpdater();
       this._hass.callService("switch_timer", "cancel_timer", { entity_id: this.entity });
       this._optimisticRunning = false; // להחזיר כפתורים מיידית
-      this.hoursColumnMoveIndex = 1;
-      this.minutesColumnMoveIndex = 1;
-      this.secondsColumnMoveIndex = 1;
-      this.hoursChanged = false;
-      this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
-      this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
-      this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
+      this._resetToZero();
       setTimeout(() => { this.requestUpdate(); }, 200);
     }
   }
@@ -447,3 +451,4 @@ class SetTimerCard extends LitElement {
 if (!customElements.get("set-timer-popup-card")) {
   customElements.define("set-timer-popup-card", SetTimerCard);
 }
+
