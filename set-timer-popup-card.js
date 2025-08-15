@@ -10,52 +10,32 @@ class SetTimerCard extends LitElement {
 
   constructor() {
     super();
-    this.hoursColumnMoveIndex = 0;
-    this.minutesColumnMoveIndex = 0;
-    this.secondsColumnMoveIndex = 0;
+    // אינדקס 1 = "00" (יש שורה ריקה לפני)
+    this.hoursColumnMoveIndex = 1;
+    this.minutesColumnMoveIndex = 1;
+    this.secondsColumnMoveIndex = 1;
+
     this.hoursMaxMoveIndex = 24;
     this.minutesMaxMoveIndex = 60;
     this.secondsMaxMoveIndex = 60;
+
     this.timerAction = "";
-    this.focusedColumn = null;    // לחיווי ויזואלי של הטור הפעיל
-    this.hoursChanged = false;    // << חדש: נשאר 00 אם לא נגעו בשעות
+    this.focusedColumn = null;
+    this.hoursChanged = false; // כל עוד false - מציגים 00 ונועלים על 00
   }
 
   static styles = css`
-    :host {
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-    .set-timer-card {
-      overflow: hidden;
-      width: fit-content;
-      margin: 0 auto;
-      border-radius: 12px;
-    }
-    .timer-card-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 4px 8px 12px;
-    }
+    :host { display: flex; justify-content: center; width: 100%; }
+    .set-timer-card { overflow: hidden; width: fit-content; margin: 0 auto; border-radius: 12px; }
+    .timer-card-wrapper { display: flex; flex-direction: column; align-items: center; padding: 4px 8px 12px; }
     .card-content { width: 100%; }
-    .timer-input-card {
-      display: flex; align-items: center; flex-direction: column; gap: 14px; border: none !important;
-    }
-    .timer-input-wrapper {
-      display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 10px;
-    }
+    .timer-input-card { display: flex; align-items: center; flex-direction: column; gap: 14px; border: none !important; }
+    .timer-input-wrapper { display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 10px; }
     .dimmed { opacity: 0.9; }
     .timer-setting-text { font-size: 17px; }
 
-    .column-titles {
-      display: flex; justify-content: center; gap: 54px; width: 100%;
-    }
-    .column-title {
-      width: 90px; text-align: center; font-family: Arial, sans-serif; opacity: 0.85;
-      transition: 120ms ease;
-    }
+    .column-titles { display: flex; justify-content: center; gap: 54px; width: 100%; }
+    .column-title { width: 90px; text-align: center; font-family: Arial, sans-serif; opacity: 0.85; transition: 120ms ease; }
     .column-title.focused { font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 
     .timer-columns-wrapper {
@@ -71,16 +51,12 @@ class SetTimerCard extends LitElement {
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
       z-index: 2;
     }
-    .timer-digit-column {
-      display: flex; flex-direction: column; height: 130px; font-size: 40px; font-family: Arial, sans-serif; transition: transform 100ms ease;
-    }
+    .timer-digit-column { display: flex; flex-direction: column; height: 130px; font-size: 40px; font-family: Arial, sans-serif; transition: transform 100ms ease; }
     .timer-digit { text-align: center; min-width: 85px; min-height: 55px; line-height: 55px; }
 
     .digit-seperator { width: 2px; height: 130px; background-color: var(--primary-text-color); opacity: 0.9; }
 
-    .timer-action-selector {
-      display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px; width: 100%; margin-top: 12px; text-align: center;
-    }
+    .timer-action-selector { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px; width: 100%; margin-top: 12px; text-align: center; }
     .timer-action { padding: 4px 10px; min-width: 90px; text-align: center; border-radius: 16px; }
     .pointer-cursor { cursor: pointer; }
     .timer-action-active { color: var(--primary-background-color); background-color: var(--primary-text-color); }
@@ -105,9 +81,9 @@ class SetTimerCard extends LitElement {
             <div class="timer-input-wrapper ${this.entityState == "set" ? "dimmed" : ""}">
               <span class="timer-setting-text"></span>
               <div class="column-titles">
-                <span class="column-title ${this.focusedColumn === 'hours-column' ? 'focused' : ''}">Hours</span>
-                <span class="column-title ${this.focusedColumn === 'minutes-column' ? 'focused' : ''}">Minutes</span>
-                <span class="column-title ${this.focusedColumn === 'seconds-column' ? 'focused' : ''}">Seconds</span>
+                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'hours-column' ? 'focused' : ''}">Hours</span>
+                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'minutes-column' ? 'focused' : ''}">Minutes</span>
+                <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'seconds-column' ? 'focused' : ''}">Seconds</span>
               </div>
               <div class="timer-columns-wrapper">
                 ${this._renderColumn("hours-column", 24)}
@@ -155,7 +131,6 @@ class SetTimerCard extends LitElement {
 
   _focusColumn = (e) => {
     this.focusedColumn = e.currentTarget.id;
-    if (this.focusedColumn === "hours-column") this.hoursChanged = true; // אם נגעו בשעות – נסמן ששונה
     this.requestUpdate();
   };
 
@@ -165,7 +140,6 @@ class SetTimerCard extends LitElement {
     this.startY = touch.clientY;
     this.lastMoveDeltaY = 0;
     this.focusedColumn = event.currentTarget.id;
-    if (this.focusedColumn === "hours-column") this.hoursChanged = true;
     this.requestUpdate();
   }
 
@@ -178,7 +152,6 @@ class SetTimerCard extends LitElement {
       const scrollDirectionUpward = deltaY > 0;
       if (Math.abs(deltaY) - this.lastMoveDeltaY >= 20) {
         this.swipeColumn(scrollDirectionUpward, event.currentTarget.id);
-        if (event.currentTarget.id === "hours-column") this.hoursChanged = true;
         this.lastMoveDeltaY = Math.abs(deltaY);
       }
     }
@@ -195,6 +168,10 @@ class SetTimerCard extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
+    // בהצגה ראשונית: 00:00:00
+    this.hoursColumnMoveIndex = 1;
+    this.minutesColumnMoveIndex = 1;
+    this.secondsColumnMoveIndex = 1;
     if (this.entityState == "set") this._startIntervalUpdater();
   }
   disconnectedCallback() {
@@ -212,10 +189,10 @@ class SetTimerCard extends LitElement {
 
     if (this.entityState == "idle") {
       this._stopIntervalUpdater();
-      this.hoursColumnMoveIndex = 0;
-      this.minutesColumnMoveIndex = 0;
-      this.secondsColumnMoveIndex = 0;
-      this.hoursChanged = false; // איפוס
+      this.hoursColumnMoveIndex = 1;
+      this.minutesColumnMoveIndex = 1;
+      this.secondsColumnMoveIndex = 1;
+      this.hoursChanged = false;
       this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
       this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
       this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
@@ -223,8 +200,14 @@ class SetTimerCard extends LitElement {
       return null;
     }
 
-    // יישור לאינדקסי ה־UI (שורה ריקה בראש כל עמודה)
-    this.hoursColumnMoveIndex   = remainingTime[0] + 1;
+    // כשהטיימר רץ: אם נשארו 0 שעות – להציג תמיד 00
+    if (remainingTime[0] === 0) {
+      this.hoursColumnMoveIndex = 1;
+      this.hoursChanged = false;
+    } else {
+      this.hoursColumnMoveIndex = remainingTime[0] + 1;
+      this.hoursChanged = true;
+    }
     this.minutesColumnMoveIndex = remainingTime[1] + 1;
     this.secondsColumnMoveIndex = remainingTime[2] + 1;
 
@@ -238,19 +221,25 @@ class SetTimerCard extends LitElement {
       const columnWrapperId = event.currentTarget.id;
       event.preventDefault();
       this.focusedColumn = columnWrapperId;
-      if (columnWrapperId === "hours-column") this.hoursChanged = true;
-      this.requestUpdate();
-
       const indexChange = event.deltaY > 0 ? 1 : event.deltaY < 0 ? -1 : 0;
+
       let newIndex;
       switch (columnWrapperId) {
-        case "hours-column":
+        case "hours-column": {
           newIndex = this.hoursColumnMoveIndex + indexChange;
-          if (newIndex < this.hoursMaxMoveIndex && newIndex >= 0) {
+          // כל עוד לא נבחרו שעות >00 – נועלים על 00 (index 1)
+          if (!this.hoursChanged && newIndex <= 1) {
+            this.hoursColumnMoveIndex = 1;
+            break;
+          }
+          if (newIndex < this.hoursMaxMoveIndex && newIndex >= 1) {
             this.hoursColumnMoveIndex = newIndex;
+            // שעות נחשבות "נבחרו" רק אם עברנו מעל 00
+            this.hoursChanged = this.hoursColumnMoveIndex > 1;
             this._moveTimerColumn(this.hoursColumnMoveIndex, columnWrapperId);
           }
           break;
+        }
         case "minutes-column":
           newIndex = this.minutesColumnMoveIndex + indexChange;
           if (newIndex < this.minutesMaxMoveIndex && newIndex >= 0) {
@@ -266,6 +255,7 @@ class SetTimerCard extends LitElement {
           }
           break;
       }
+      this.requestUpdate();
     }
   }
 
@@ -273,14 +263,19 @@ class SetTimerCard extends LitElement {
     const indexChange = upwardDirection ? 1 : -1;
     let newIndex;
     switch (columnWrapperId) {
-      case "hours-column":
+      case "hours-column": {
         newIndex = this.hoursColumnMoveIndex + indexChange;
-        if (newIndex < this.hoursMaxMoveIndex && newIndex >= 0) {
+        if (!this.hoursChanged && newIndex <= 1) {
+          this.hoursColumnMoveIndex = 1; // נעילה על 00
+          break;
+        }
+        if (newIndex < this.hoursMaxMoveIndex && newIndex >= 1) {
           this.hoursColumnMoveIndex = newIndex;
-          this.hoursChanged = true; // סומן שנגעו בשעות
+          this.hoursChanged = this.hoursColumnMoveIndex > 1;
           this._moveTimerColumn(this.hoursColumnMoveIndex, columnWrapperId);
         }
         break;
+      }
       case "minutes-column":
         newIndex = this.minutesColumnMoveIndex + indexChange;
         if (newIndex < this.minutesMaxMoveIndex && newIndex >= 0) {
@@ -296,6 +291,7 @@ class SetTimerCard extends LitElement {
         }
         break;
     }
+    this.requestUpdate();
   }
 
   _moveTimerColumn(columnMoveIndex, columnWrapperId) {
@@ -323,7 +319,6 @@ class SetTimerCard extends LitElement {
   _submitAction() {
     if (this.entityState == "idle") {
       const pad = (n) => String(n).padStart(2, "0");
-      // שעות יישארו 00 אם לא נגעו בהן
       const hVal = this.hoursChanged ? Math.max(0, this.hoursColumnMoveIndex - 1) : 0;
       const mVal = Math.max(0, this.minutesColumnMoveIndex - 1);
       const sVal = Math.max(0, this.secondsColumnMoveIndex - 1);
@@ -335,14 +330,17 @@ class SetTimerCard extends LitElement {
         duration: `${pad(hVal)}:${pad(mVal)}:${pad(sVal)}`, // HH:MM:SS
       });
 
+      // בזמן ריצה אין טור "נבחר"
+      this.focusedColumn = null;
+
       setTimeout(() => { this.requestUpdate(); this._startIntervalUpdater(); }, 200);
       setTimeout(() => { this._hass.callService("browser_mod", "close_popup", { target: "this" }); }, 1500);
     } else if (this.entityState == "set") {
       this._stopIntervalUpdater();
       this._hass.callService("switch_timer", "cancel_timer", { entity_id: this.entity });
-      this.hoursColumnMoveIndex = 0;
-      this.minutesColumnMoveIndex = 0;
-      this.secondsColumnMoveIndex = 0;
+      this.hoursColumnMoveIndex = 1;
+      this.minutesColumnMoveIndex = 1;
+      this.secondsColumnMoveIndex = 1;
       this.hoursChanged = false;
       this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
       this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
