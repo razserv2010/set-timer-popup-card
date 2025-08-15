@@ -21,7 +21,7 @@ class SetTimerCard extends LitElement {
 
     this.timerAction = "";
     this.focusedColumn = null;
-    this.hoursChanged = true; // אם לא נגעו בשעות – נשאר 00
+    this.hoursChanged = false; // נעילה על 00 עד שבוחרים שעה > 00
 
     // גיאומטריה דינמית ליישור מדויק
     this._digitHeight = null;
@@ -99,14 +99,7 @@ class SetTimerCard extends LitElement {
         <div class="timer-card-wrapper">
           <div class="card-content timer-input-card">
             <div class="timer-input-wrapper ${this.entityState == "set" ? "dimmed" : ""}">
-              ${ (this.cardTitle || this._hass?.states?.[this.entity]?.attributes?.friendly_name)
-                ? html`<div class="popup-title">
-                         ${ this.cardTitle || this._hass?.states?.[this.entity]?.attributes?.friendly_name }
-                       </div>`
-                : "" }
-            <div class="popup-title">
-              ${(this._hass?.states?.[this.entity]?.attributes?.friendly_name) || "טיימר"}
-            </div>
+              ${ this.cardTitle ? html`<div class="popup-title">${this.cardTitle}</div>` : "" }
 
               <span class="timer-setting-text"></span>
               <div class="column-titles">
@@ -210,10 +203,10 @@ class SetTimerCard extends LitElement {
 
   _updateRemaningTime(finishingAt) {
     const finishingTime = new Date(finishingAt);
-    const remainingMs = finishingTime - new Date();
-    const remainingH = Math.floor(remainingMs / (1000 * 60 * 60));
-    const remainingM = Math.floor(remainingMs / (1000 * 60));
-    const remainingS = Math.floor(remainingMs / 1000);
+    theRemainingMs = finishingTime - new Date();
+    const remainingH = Math.floor(theRemainingMs / (1000 * 60 * 60));
+    const remainingM = Math.floor(theRemainingMs / (1000 * 60));
+    const remainingS = Math.floor(theRemainingMs / 1000);
     const remainingTime = [remainingH, remainingM - remainingH * 60, remainingS - remainingM * 60];
 
     if (this.entityState == "idle") {
@@ -402,8 +395,9 @@ class SetTimerCard extends LitElement {
     if (!config.entity) throw new Error("No timer entity supplied");
     if (!config.entity.startsWith("switch_timer.")) throw new Error("The supplied entity is not a valid 'switch_timer' entity");
     this.entity = config.entity;
-      // חדש: קבלה ושמירת הכותרת מה-YAML
-    this.cardTitle = typeof config.title === "string" ? config.title : "";  
+
+    // מציגים רק מה שנשלח ב-title; בלי נפילה ל-friendly_name
+    this.cardTitle = typeof config.title === "string" ? config.title : "";
   }
 
   getCardSize() { return 3; }
