@@ -137,8 +137,8 @@ static styles = css`
   .timer-digit{
     text-align: center;
     min-width: 85px;         /* רוחב עמודה */
-    min-height: 40px;        /* ⚙️ גובה שורה (היה 55px) */
-    line-height: 6px;       /* ⚙️ חייב להיות שווה ל-min-height */
+    min-height: 65px;        /* ⚙️ גובה שורה (היה 55px) */
+    line-height: 40px;       /* ⚙️ חייב להיות שווה ל-min-height */
   }
 
   .digit-seperator{
