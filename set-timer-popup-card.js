@@ -45,120 +45,137 @@ class SetTimerCard extends LitElement {
     this._lastDigitHeight = null;
   }
 
-  static styles = css`
-    .set-timer-card {
-      overflow: hidden;
-      height: 100%;
-    }
+static styles = css`
+  /* כרטיס */
+  .set-timer-card{
+    overflow: hidden;
+    height: 100%;
+    border-radius: 12px;
+  }
 
-    .container ha-card {
-      border: none !important;
-      padding: 12px;
-    }
+  /* מעטפת פנימית */
+  .container ha-card{
+    border: none !important;
+    padding: 12px;
+  }
 
-    .timer-input-card {
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-      gap: 15px;
-      border: none !important;
-    }
+  /* אזור הקלט */
+  .timer-input-card{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+    border: none !important;
+  }
+  .timer-input-wrapper{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .dimmed{ opacity: 0.9; }
+  .timer-setting-text{ font-size: 17px; }
 
-    .timer-input-wrapper {
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
+  /* כותרות העמודות */
+  .column-titles{
+    display: flex;
+    justify-content: center;  /* ממרכז שמות עמודות */
+    gap: 54px;                /* מרחק בין "שעות/דקות/שניות" */
+    width: 100%;
+  }
+  .column-title{
+    width: 90px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
 
-    .dimmed {
-      opacity: 0.9;
-    }
+  /* שלוש העמודות הגוללות */
+  .timer-columns-wrapper{
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;  /* ממרכז את הבלוק כולו */
+    gap: 28px;                /* מרווח בין העמודות */
+    margin: 0 auto;
+  }
 
-    .timer-setting-text {
-      font-size: 17px;
-    }
+  .timer-digit-column-wrapper{
+    /* חלון תצוגה בגובה קבוע */
+    height: 130px;            /* ⚙️ גובה החלון */
+    padding: 0 12px;          /* ⚙️ שומן צדדי לעמודה */
+    mask-image: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0),
+      rgba(0,0,0,1) 40%,
+      rgba(0,0,0,1) 60%,
+      rgba(0,0,0,0)
+    );
+    z-index: 2;
+  }
 
-    .column-titles {
-      display: flex;
-    }
+  .timer-digit-column{
+    display: flex;
+    flex-direction: column;
+    height: 130px;            /* ⚙️ שווה ל-height של ה־wrapper */
+    font-size: 40px;          /* ⚙️ גודל ספרות */
+    font-family: Arial, sans-serif;
+    transition: transform 100ms ease;
+    will-change: transform;
+  }
 
-    .column-title {
-      width: 90px;
-      text-align: center;
-      font-family: Arial, sans-serif;
-    }
+  .timer-digit{
+    text-align: center;
+    min-width: 85px;          /* ⚙️ רוחב עמודה */
+    min-height: 55px;         /* ⚙️ גובה שורה */
+    line-height: 55px;        /* ⚙️ חובה לשוויון ל-min-height ליישור אנכי */
+  }
 
-    .timer-columns-wrapper {
-      width: fit-content;
-      display: flex;
-      align-items: center;
-    }
+  .digit-seperator{
+    width: 2px;               /* ⚙️ עובי הקו (אפשר 0/להסתיר) */
+    height: 130px;            /* ⚙️ שווה ל-height של העמודה */
+    background-color: var(--primary-text-color);
+    opacity: 0.9;
+    /* לביטול מוחלט:
+    display: none;
+    */
+  }
 
-    .timer-digit-column-wrapper {
-      mask-image: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0),
-        rgba(0, 0, 0, 1) 40%,
-        rgba(0, 0, 0, 1) 60%,
-        rgba(0, 0, 0, 0)
-      );
-      z-index: 2;
-    }
+  /* כפתורי פעולה */
+  .timer-action-selector{
+    display: flex;
+    align-items: center;
+    justify-content: center;  /* מרכז את השורה */
+    gap: 10px;
+    z-index: 5;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .timer-action{
+    padding: 4px 10px;        /* ⚙️ “גודל” הכפתור */
+    border-radius: 16px;
+  }
+  .pointer-cursor{ cursor: pointer; }
+  .timer-action-active{
+    color: var(--primary-background-color);
+    background-color: var(--primary-text-color);
+    border-radius: 17px;
+  }
 
-    .timer-digit-column {
-      display: flex;
-      flex-direction: column;
-      height: 130px;
-      font-size: 40px;
-      font-family: Arial, sans-serif;
-      transition: transform 100ms ease;
-    }
-
-    .timer-digit {
-      text-align: center;
-      min-width: 85px;
-      min-height: 55px;
-    }
-
-    .digit-seperator {
-      width: 4px;
-      height: 130px;
-      background-color: var(--primary-text-color);
-    }
-
-    .timer-action-selector {
-      display: flex;
-      align-items: center;
-      z-index: 5;
-      gap: 8px;
-    }
-
-    .timer-action {
-      padding: 4px 6px;
-    }
-
-    .pointer-cursor {
-      cursor: pointer;
-    }
-
-    .timer-action-active {
-      color: var(--primary-background-color);
-      background-color: var(--primary-text-color);
-      border-radius: 17px;
-    }
-    .set-timer-button {
-      padding: 10px 16px;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      z-index: 5;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-  `;
+  /* כפתור תחתון */
+  .set-timer-button{
+    display: block;
+    padding: 10px 16px;
+    margin: 16px auto 0;      /* ממורכז ואחיד */
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    z-index: 5;
+    cursor: pointer;
+    font-size: 16px;          /* 1rem ≈ 16px – כאן קיבענו לפיקסלים */
+  }
+`;
 
   // --- רינדור הכרטיס ---
   render() {
