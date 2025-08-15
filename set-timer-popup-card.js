@@ -21,7 +21,13 @@ class SetTimerCard extends LitElement {
 
     this.timerAction = "";
     this.focusedColumn = null;
-    this.hoursChanged = false; // אם לא נגעו בשעות – נשאר 00
+    this.hoursChanged = true; // אם לא נגעו בשעות – נשאר 00
+
+    // גיאומטריה דינמית ליישור מדויק
+    this._digitHeight = null;
+    this._centerOffset = null;
+    this._lastWrapperHeight = null;
+    this._lastDigitHeight = null;
   }
 
   static styles = css`
@@ -49,8 +55,13 @@ class SetTimerCard extends LitElement {
       padding: 0 16px; /* הגדלת Hitbox */
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
       z-index: 2;
+      height: 130px;               /* שומר על גובה קבוע לקונטיינר */
     }
-    .timer-digit-column { display: flex; flex-direction: column; height: 130px; font-size: 40px; font-family: Arial, sans-serif; transition: transform 100ms ease; }
+    .timer-digit-column {
+      display: flex; flex-direction: column;
+      height: 130px;               /* חלון הצגה */
+      font-size: 40px; font-family: Arial, sans-serif; transition: transform 100ms ease;
+    }
     .timer-digit { text-align: center; min-width: 85px; min-height: 55px; line-height: 55px; }
 
     .digit-seperator { width: 2px; height: 130px; background-color: var(--primary-text-color); opacity: 0.9; }
@@ -289,10 +300,34 @@ class SetTimerCard extends LitElement {
     this.requestUpdate();
   }
 
-  _moveTimerColumn(columnMoveIndex, columnWrapperId) {
-    const columnWrapper = this.shadowRoot.querySelector(`#${columnWrapperId} .timer-digit-column`);
-    if (columnWrapper) columnWrapper.style.transform = `translateY(-${columnMoveIndex * 55}px)`;
+  // ---- יישור מדויק: חישוב Offset מרכזי דינמי ----
+  _ensureGeometry(wrapper, column) {
+    const sample = column.querySelector('.timer-digit:nth-child(2)') || column.querySelector('.timer-digit');
+    const wrapperH = wrapper ? wrapper.clientHeight : 130;
+    const digitH = sample ? sample.clientHeight : 55;
+
+    if (this._lastWrapperHeight !== wrapperH || this._lastDigitHeight !== digitH) {
+      this._lastWrapperHeight = wrapperH;
+      this._lastDigitHeight = digitH;
+      this._digitHeight = digitH;
+      this._centerOffset = (wrapperH - digitH) / 2;
+    }
   }
+
+  _moveTimerColumn(columnMoveIndex, columnWrapperId) {
+    const wrapper = this.shadowRoot.querySelector(`#${columnWrapperId}`);
+    if (!wrapper) return;
+    const column = wrapper.querySelector('.timer-digit-column');
+    if (!column) return;
+
+    this._ensureGeometry(wrapper, column);
+
+    const digitH = this._digitHeight ?? 55;
+    const offset = this._centerOffset ?? 0;
+    const y = -(columnMoveIndex * digitH) + offset; // שומר את הערך הנבחר בדיוק במרכז
+    column.style.transform = `translateY(${y}px)`;
+  }
+  // ------------------------------------------------
 
   _setTimerAction(clickEvent) {
     if (this.entityState == "idle") {
