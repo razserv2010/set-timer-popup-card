@@ -99,6 +99,11 @@ class SetTimerCard extends LitElement {
         <div class="timer-card-wrapper">
           <div class="card-content timer-input-card">
             <div class="timer-input-wrapper ${this.entityState == "set" ? "dimmed" : ""}">
+              ${ (this.cardTitle || this._hass?.states?.[this.entity]?.attributes?.friendly_name)
+                ? html`<div class="popup-title">
+                         ${ this.cardTitle || this._hass?.states?.[this.entity]?.attributes?.friendly_name }
+                       </div>`
+                : "" }
             <div class="popup-title">
               ${(this._hass?.states?.[this.entity]?.attributes?.friendly_name) || "טיימר"}
             </div>
@@ -397,6 +402,8 @@ class SetTimerCard extends LitElement {
     if (!config.entity) throw new Error("No timer entity supplied");
     if (!config.entity.startsWith("switch_timer.")) throw new Error("The supplied entity is not a valid 'switch_timer' entity");
     this.entity = config.entity;
+      // חדש: קבלה ושמירת הכותרת מה-YAML
+    this.cardTitle = typeof config.title === "string" ? config.title : "";  
   }
 
   getCardSize() { return 3; }
