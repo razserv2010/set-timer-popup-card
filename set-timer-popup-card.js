@@ -25,9 +25,9 @@ class SetTimerCard extends LitElement {
   constructor() {
     super();
     // אינדקס 1 = "00" (יש שורה ריקה לפני)
-    this.hoursColumnMoveIndex = 1;
-    this.minutesColumnMoveIndex = 1;
-    this.secondsColumnMoveIndex = 1;
+    this.hoursColumnMoveIndex = 0;
+    this.minutesColumnMoveIndex = 0;
+    this.secondsColumnMoveIndex = 0;
 
     this.hoursMaxMoveIndex = 24;
     this.minutesMaxMoveIndex = 60;
