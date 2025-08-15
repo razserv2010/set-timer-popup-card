@@ -96,13 +96,13 @@ static styles = css`
     display: flex;
     align-items: center;
     justify-content: center;  /* ממרכז את הבלוק כולו */
-    gap: 28px;                /* מרווח בין העמודות */
+    gap: 10px;                /* מרווח בין העמודות */
     margin: 0 auto;
   }
 
   .timer-digit-column-wrapper{
     /* חלון תצוגה בגובה קבוע */
-    height: 130px;            /* ⚙️ גובה החלון */
+    height: 60px;            /* ⚙️ גובה החלון */
     padding: 0 12px;          /* ⚙️ שומן צדדי לעמודה */
     mask-image: linear-gradient(
       to bottom,
