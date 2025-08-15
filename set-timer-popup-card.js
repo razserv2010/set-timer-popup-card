@@ -3,9 +3,28 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 class SetTimerCard extends LitElement {
+  // --- קלט מ-HA: מפעיל/עוצר interval כשמצב הישות משתנה ---
   set hass(hass) {
+    const prevHass = this._hass;
     this._hass = hass;
-    this.entityState = this._hass.states[this.entity].state;
+
+    const prevState = this.entityState;
+    this.entityState = this._hass?.states?.[this.entity]?.state;
+
+    if (prevState !== this.entityState) {
+      if (this.entityState === "set") {
+        this._startIntervalUpdater();   // התחלת עדכון חי
+      } else {
+        this._stopIntervalUpdater();    // עצירה נקייה + איפוס תצוגה
+        this.hoursColumnMoveIndex = 1;
+        this.minutesColumnMoveIndex = 1;
+        this.secondsColumnMoveIndex = 1;
+        this.hoursChanged = false;
+        this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
+        this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
+        this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
+      }
+    }
   }
 
   constructor() {
@@ -179,15 +198,21 @@ class SetTimerCard extends LitElement {
     }
   }
 
+  // --- ניהול interval חי ---
   _startIntervalUpdater() {
+    if (this.timerUpdateInterval) window.clearInterval(this.timerUpdateInterval);
     this.timerUpdateInterval = window.setInterval(() => {
-      this._updateRemaningTime(this._hass.states[this.entity].attributes.finishing_at);
+      const finishingAt = this._hass?.states?.[this.entity]?.attributes?.finishing_at;
+      this._updateRemaningTime(finishingAt);
     }, 500);
   }
   _stopIntervalUpdater() {
-    window.clearInterval(this.timerUpdateInterval);
-    window.timerUpdateInterval = null;
+    if (this.timerUpdateInterval) {
+      window.clearInterval(this.timerUpdateInterval);
+      this.timerUpdateInterval = null;
+    }
   }
+
   connectedCallback() {
     super.connectedCallback();
     // ברירת מחדל: 00:00:00 ממורכז
@@ -198,36 +223,38 @@ class SetTimerCard extends LitElement {
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    window.clearInterval(this.timerUpdateInterval);
+    this._stopIntervalUpdater();
   }
 
+  // --- חישוב זמן שנותר והזזה של העמודות למרכז ---
   _updateRemaningTime(finishingAt) {
-    const finishingTime = new Date(finishingAt);
-    theRemainingMs = finishingTime - new Date();
-    const remainingH = Math.floor(theRemainingMs / (1000 * 60 * 60));
-    const remainingM = Math.floor(theRemainingMs / (1000 * 60));
-    const remainingS = Math.floor(theRemainingMs / 1000);
-    const remainingTime = [remainingH, remainingM - remainingH * 60, remainingS - remainingM * 60];
+    if (!finishingAt || this.entityState !== "set") return;
 
-    if (this.entityState == "idle") {
-      this._stopIntervalUpdater();
+    const finishingTime = new Date(finishingAt);
+    const remainingMs = finishingTime - new Date();   // תיקון באג theRemainingMs
+    if (remainingMs <= 0) {
+      // נגמר – נאפס תצוגה; ה-hass setter יעצור interval כשהישות תחזור ל-idle
       this.hoursColumnMoveIndex = 1;
       this.minutesColumnMoveIndex = 1;
       this.secondsColumnMoveIndex = 1;
-      this.hoursChanged = false;
       this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
       this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
       this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
-      this.requestUpdate();
-      return null;
+      return;
     }
 
-    // כשהטיימר רץ: 0 -> מציגים תמיד 00 (אינדקס 1), אחרת value+1
-    this.hoursColumnMoveIndex   = (remainingTime[0] === 0) ? 1 : remainingTime[0] + 1;
-    this.minutesColumnMoveIndex = (remainingTime[1] === 0) ? 1 : remainingTime[1] + 1;
-    this.secondsColumnMoveIndex = (remainingTime[2] === 0) ? 1 : remainingTime[2] + 1;
+    const remainingH = Math.floor(remainingMs / (1000 * 60 * 60));
+    const remainingM = Math.floor(remainingMs / (1000 * 60));
+    const remainingS = Math.floor(remainingMs / 1000);
 
-    // אם נשארו 0 שעות – לא נסמן שנגעו בהן
+    const mm = remainingM - remainingH * 60;
+    const ss = remainingS - remainingM * 60;
+
+    // 0 -> index 1 (00), אחרת value+1
+    this.hoursColumnMoveIndex   = (remainingH === 0) ? 1 : remainingH + 1;
+    this.minutesColumnMoveIndex = (mm === 0)        ? 1 : mm + 1;
+    this.secondsColumnMoveIndex = (ss === 0)        ? 1 : ss + 1;
+
     this.hoursChanged = this.hoursColumnMoveIndex > 1;
 
     this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
@@ -372,11 +399,13 @@ class SetTimerCard extends LitElement {
         duration: `${pad(hVal)}:${pad(mVal)}:${pad(sVal)}`, // HH:MM:SS
       });
 
-      // בזמן ריצה אין טור "נבחר"
-      this.focusedColumn = null;
+      // נרצה לראות לייב – לא נסגור את הפופאפ אוטומטית
+      // this._hass.callService("browser_mod", "close_popup", { target: "this" });
 
-      setTimeout(() => { this.requestUpdate(); this._startIntervalUpdater(); }, 200);
-      setTimeout(() => { this._hass.callService("browser_mod", "close_popup", { target: "this" }); }, 1500);
+      // לתת תחושת "מיידי": נתחיל interval קצר עד שהישות תתעדכן
+      this._startIntervalUpdater();
+      this.focusedColumn = null;
+      setTimeout(() => this.requestUpdate(), 200);
     } else if (this.entityState == "set") {
       this._stopIntervalUpdater();
       this._hass.callService("switch_timer", "cancel_timer", { entity_id: this.entity });
