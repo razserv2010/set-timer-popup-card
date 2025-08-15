@@ -32,6 +32,16 @@ class SetTimerCard extends LitElement {
 
   static styles = css`
     :host { display: flex; justify-content: center; width: 100%; }
+    /* כותרת ממורכזת בתוך הכרטיס */
+    .popup-title {
+      width: 100%;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      margin: 4px 0 6px;
+      line-height: 1.2;
+      direction: rtl;
+    }
     .set-timer-card { overflow: hidden; width: fit-content; margin: 0 auto; border-radius: 12px; }
     .timer-card-wrapper { display: flex; flex-direction: column; align-items: center; padding: 4px 8px 12px; }
     .card-content { width: 100%; }
@@ -89,6 +99,10 @@ class SetTimerCard extends LitElement {
         <div class="timer-card-wrapper">
           <div class="card-content timer-input-card">
             <div class="timer-input-wrapper ${this.entityState == "set" ? "dimmed" : ""}">
+            <div class="popup-title">
+              ${(this._hass?.states?.[this.entity]?.attributes?.friendly_name) || "טיימר"}
+            </div>
+
               <span class="timer-setting-text"></span>
               <div class="column-titles">
                 <span class="column-title ${this.entityState === 'idle' && this.focusedColumn === 'hours-column' ? 'focused' : ''}">שעות</span>
@@ -112,7 +126,7 @@ class SetTimerCard extends LitElement {
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_off" ? "timer-action-active" : ""}"
                   id="turn_off" @click="${this._setTimerAction}">כיבוי</span>
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "toggle" ? "timer-action-active" : ""}"
-                  id="toggle" @click="${this._setTimerAction}">Toggle</span>
+                  id="toggle" @click="${this._setTimerAction}">החלפה</span>
           </div>
 
           <button class="set-timer-button" @click="${this._submitAction}">
