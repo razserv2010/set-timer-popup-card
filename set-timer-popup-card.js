@@ -13,9 +13,11 @@ class SetTimerCard extends LitElement {
 
     if (prevState !== this.entityState) {
       if (this.entityState === "set") {
-        this._startIntervalUpdater();   // התחלת עדכון חי
+        this._optimisticRunning = false;   // HA אישר שהטיימר רץ
+        this._startIntervalUpdater();
       } else {
-        this._stopIntervalUpdater();    // עצירה נקייה + איפוס תצוגה
+        this._optimisticRunning = false;   // חזרה ל-idle
+        this._stopIntervalUpdater();
         this.hoursColumnMoveIndex = 1;
         this.minutesColumnMoveIndex = 1;
         this.secondsColumnMoveIndex = 1;
@@ -41,6 +43,9 @@ class SetTimerCard extends LitElement {
     this.timerAction = "";
     this.focusedColumn = null;
     this.hoursChanged = false; // נעילה על 00 עד שבוחרים שעה > 00
+
+    // כפתורי פעולה יוסתרו מיד לאחר הפעלה עד לאישור מ-HA
+    this._optimisticRunning = false;
 
     // גיאומטריה דינמית ליישור מדויק
     this._digitHeight = null;
@@ -137,14 +142,16 @@ class SetTimerCard extends LitElement {
             </div>
           </div>
 
-          <div class="timer-action-selector ${this.entityState == "set" ? "dimmed" : ""}">
-            <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_on" ? "timer-action-active" : ""}"
-                  id="turn_on" @click="${this._setTimerAction}" @touchstart="${this._setTimerAction}">הפעלה</span>
-            <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_off" ? "timer-action-active" : ""}"
-                  id="turn_off" @click="${this._setTimerAction}">כיבוי</span>
-            <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "toggle" ? "timer-action-active" : ""}"
-                  id="toggle" @click="${this._setTimerAction}">החלפה</span>
-          </div>
+          ${ this._showActions() ? html`
+            <div class="timer-action-selector ${this.entityState == "set" ? "dimmed" : ""}">
+              <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_on" ? "timer-action-active" : ""}"
+                    id="turn_on" @click="${this._setTimerAction}" @touchstart="${this._setTimerAction}">הפעלה</span>
+              <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_off" ? "timer-action-active" : ""}"
+                    id="turn_off" @click="${this._setTimerAction}">כיבוי</span>
+              <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "toggle" ? "timer-action-active" : ""}"
+                    id="toggle" @click="${this._setTimerAction}">החלפה</span>
+            </div>
+          ` : "" }
 
           <button class="set-timer-button" @click="${this._submitAction}">
             ${this.entityState == "idle" ? "הפעלת טיימר" : "ביטול טיימר"}
@@ -152,6 +159,11 @@ class SetTimerCard extends LitElement {
         </div>
       </ha-card>
     `;
+  }
+
+  _showActions() {
+    // מציגים את כפתורי הפעולה רק כשהטיימר לא רץ, וגם לא במצב אופטימי בדיוק אחרי הפעלה
+    return this.entityState !== "set" && !this._optimisticRunning;
   }
 
   _renderColumn(id, max) {
@@ -231,9 +243,8 @@ class SetTimerCard extends LitElement {
     if (!finishingAt || this.entityState !== "set") return;
 
     const finishingTime = new Date(finishingAt);
-    const remainingMs = finishingTime - new Date();   // תיקון באג theRemainingMs
+    const remainingMs = finishingTime - new Date();
     if (remainingMs <= 0) {
-      // נגמר – נאפס תצוגה; ה-hass setter יעצור interval כשהישות תחזור ל-idle
       this.hoursColumnMoveIndex = 1;
       this.minutesColumnMoveIndex = 1;
       this.secondsColumnMoveIndex = 1;
@@ -273,7 +284,6 @@ class SetTimerCard extends LitElement {
       switch (columnWrapperId) {
         case "hours-column": {
           newIndex = this.hoursColumnMoveIndex + indexChange;
-          // עד שלא בחרו שעה > 00 – נועלים על 00 (index 1)
           if (!this.hoursChanged && newIndex <= 1) {
             this.hoursColumnMoveIndex = 1;
             break;
@@ -393,6 +403,10 @@ class SetTimerCard extends LitElement {
       const sVal = Math.max(0, this.secondsColumnMoveIndex - 1);
       const actionToSend = this.timerAction || this._hass.states[this.entity]?.attributes?.action || "toggle";
 
+      // הסתרת הכפתורים מיידית עד לאישור מהשרת
+      this._optimisticRunning = true;
+      this.requestUpdate();
+
       this._hass.callService("switch_timer", "set_timer", {
         entity_id: this.entity,
         action: actionToSend,
@@ -400,15 +414,13 @@ class SetTimerCard extends LitElement {
       });
 
       // נרצה לראות לייב – לא נסגור את הפופאפ אוטומטית
-      // this._hass.callService("browser_mod", "close_popup", { target: "this" });
-
-      // לתת תחושת "מיידי": נתחיל interval קצר עד שהישות תתעדכן
       this._startIntervalUpdater();
       this.focusedColumn = null;
       setTimeout(() => this.requestUpdate(), 200);
     } else if (this.entityState == "set") {
       this._stopIntervalUpdater();
       this._hass.callService("switch_timer", "cancel_timer", { entity_id: this.entity });
+      this._optimisticRunning = false; // להחזיר כפתורים מיידית
       this.hoursColumnMoveIndex = 1;
       this.minutesColumnMoveIndex = 1;
       this.secondsColumnMoveIndex = 1;
