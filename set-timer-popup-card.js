@@ -104,9 +104,11 @@ class SetTimerCard extends LitElement {
 
     .timer-action-selector {
       display: flex;
+      justify-content: center;  /* ממורכז אופקית */
       align-items: center;
-      z-index: 5;
-      gap: 8px;
+      gap: 12px;                 /* רווח אחיד ביניהם */
+      margin-top: 12px;          /* רווח מהעיגולים של הזמן */
+      width: 100%;
     }
 
     .timer-action {
@@ -123,12 +125,13 @@ class SetTimerCard extends LitElement {
       border-radius: 17px;
     }
     .set-timer-button {
+      display: block;
+      margin: 16px auto 0;       /* ממורכז אופקית */
       padding: 10px 16px;
       background-color: var(--primary-color);
       color: white;
       border: none;
       border-radius: 4px;
-      z-index: 5;
       cursor: pointer;
       font-size: 1rem;
     }
