@@ -46,6 +46,15 @@ class SetTimerCard extends LitElement {
   }
 
 static styles = css`
+  .popup-title{
+    font-weight: 700;                 /* בולד */
+    text-decoration: underline;       /* קו תחתון */
+    text-underline-offset: 4px;       /* מרחק הקו מהטקסט */
+    font-size: 18px;
+    margin: 4px 0 6px;
+    text-align: center;
+    direction: rtl;
+  }
   /* כרטיס */
   .set-timer-card{
     overflow: hidden;
