@@ -85,7 +85,7 @@ static styles = css`
     width: 100%;
   }
   .column-title{
-    width: 90px;
+    width: 60px;
     text-align: center;
     font-family: Arial, sans-serif;
   }
@@ -102,8 +102,8 @@ static styles = css`
 
   .timer-digit-column-wrapper{
     /* חלון תצוגה בגובה קבוע */
-    height: 60px;            /* ⚙️ גובה החלון (כמו שביקשת) */
-    padding: 0 12px;
+    height: 80px;            /* ⚙️ גובה החלון (כמו שביקשת) */
+    padding: 0 2px;
     /* ⚙️ מסכה רחבה יותר כדי שספרה שלמה תיראה מיד */
     mask-image: linear-gradient(
       to bottom,
@@ -118,7 +118,7 @@ static styles = css`
   .timer-digit-column{
     display: flex;
     flex-direction: column;
-    height: 60px;            /* ⚙️ להתאים לחלון ↑ (היה 130px) */
+    height: 130px;            /* ⚙️ להתאים לחלון ↑ (היה 130px) */
     font-size: 36px;         /* ⚙️ טיפה קטן כדי לשבת טוב בשורה של 50px */
     font-family: Arial, sans-serif;
     transition: transform 100ms ease;
@@ -128,8 +128,8 @@ static styles = css`
   .timer-digit{
     text-align: center;
     min-width: 85px;         /* רוחב עמודה */
-    min-height: 50px;        /* ⚙️ גובה שורה (היה 55px) */
-    line-height: 50px;       /* ⚙️ חייב להיות שווה ל-min-height */
+    min-height: 55px;        /* ⚙️ גובה שורה (היה 55px) */
+    line-height: 65px;       /* ⚙️ חייב להיות שווה ל-min-height */
   }
 
   .digit-seperator{
@@ -168,7 +168,7 @@ static styles = css`
     display: block;
     padding: 10px 16px;
     margin: 16px auto 0;
-    background-color: var(--primary-color);
+    background-color: rgb(13, 255, 0);
     color: #fff;
     border: none;
     border-radius: 6px;
