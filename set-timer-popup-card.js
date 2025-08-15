@@ -41,10 +41,6 @@ class SetTimerCard extends LitElement {
     .timer-columns-wrapper {
       width: fit-content; display: flex; align-items: center; justify-content: center; gap: 28px; margin: 0 auto; position: relative;
     }
-    .timer-columns-wrapper::after {
-      content: ""; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
-      height: 1px; background: var(--primary-text-color); opacity: 0.25; pointer-events: none;
-    }
 
     .timer-digit-column-wrapper {
       padding: 0 16px; /* הגדלת Hitbox */
