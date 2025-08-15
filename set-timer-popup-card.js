@@ -234,7 +234,7 @@ static styles = css`
           ` : "" }
 
           <button class="set-timer-button" @click="${this._submitAction}">
-            ${this.entityState == "idle" ? "אישור פעולות" : "ביטול טיימר"}
+            ${this.entityState == "idle" ? "אישור" : "ביטול טיימר"}
           </button>
         </div>
       </ha-card>
