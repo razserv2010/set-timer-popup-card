@@ -96,7 +96,7 @@ class SetTimerCard extends LitElement {
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_on" ? "timer-action-active" : ""}"
                   id="turn_on" @click="${this._setTimerAction}" @touchstart="${this._setTimerAction}">הפעלה</span>
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_off" ? "timer-action-active" : ""}"
-                  id="turn_off" @click="${this._setTimerAction}">יכיבוי</span>
+                  id="turn_off" @click="${this._setTimerAction}">כיבוי</span>
             <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "toggle" ? "timer-action-active" : ""}"
                   id="toggle" @click="${this._setTimerAction}">Toggle</span>
           </div>
