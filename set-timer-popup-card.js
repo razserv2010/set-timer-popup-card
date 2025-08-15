@@ -80,8 +80,8 @@ static styles = css`
   /* כותרות העמודות */
   .column-titles{
     display: flex;
-    justify-content: center;  /* ממרכז שמות עמודות */
-    gap: 54px;                /* מרחק בין "שעות/דקות/שניות" */
+    justify-content: center;
+    gap: 54px;
     width: 100%;
   }
   .column-title{
@@ -95,21 +95,22 @@ static styles = css`
     width: fit-content;
     display: flex;
     align-items: center;
-    justify-content: center;  /* ממרכז את הבלוק כולו */
-    gap: 10px;                /* מרווח בין העמודות */
+    justify-content: center;
+    gap: 10px;
     margin: 0 auto;
   }
 
   .timer-digit-column-wrapper{
     /* חלון תצוגה בגובה קבוע */
-    height: 60px;            /* ⚙️ גובה החלון */
-    padding: 0 12px;          /* ⚙️ שומן צדדי לעמודה */
+    height: 60px;            /* ⚙️ גובה החלון (כמו שביקשת) */
+    padding: 0 12px;
+    /* ⚙️ מסכה רחבה יותר כדי שספרה שלמה תיראה מיד */
     mask-image: linear-gradient(
       to bottom,
-      rgba(0,0,0,0),
-      rgba(0,0,0,1) 40%,
-      rgba(0,0,0,1) 60%,
-      rgba(0,0,0,0)
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,1) 8%,
+      rgba(0,0,0,1) 92%,
+      rgba(0,0,0,0) 100%
     );
     z-index: 2;
   }
@@ -117,8 +118,8 @@ static styles = css`
   .timer-digit-column{
     display: flex;
     flex-direction: column;
-    height: 130px;            /* ⚙️ שווה ל-height של ה־wrapper */
-    font-size: 40px;          /* ⚙️ גודל ספרות */
+    height: 60px;            /* ⚙️ להתאים לחלון ↑ (היה 130px) */
+    font-size: 36px;         /* ⚙️ טיפה קטן כדי לשבת טוב בשורה של 50px */
     font-family: Arial, sans-serif;
     transition: transform 100ms ease;
     will-change: transform;
@@ -126,14 +127,14 @@ static styles = css`
 
   .timer-digit{
     text-align: center;
-    min-width: 85px;          /* ⚙️ רוחב עמודה */
-    min-height: 55px;         /* ⚙️ גובה שורה */
-    line-height: 55px;        /* ⚙️ חובה לשוויון ל-min-height ליישור אנכי */
+    min-width: 85px;         /* רוחב עמודה */
+    min-height: 50px;        /* ⚙️ גובה שורה (היה 55px) */
+    line-height: 50px;       /* ⚙️ חייב להיות שווה ל-min-height */
   }
 
   .digit-seperator{
-    width: 2px;               /* ⚙️ עובי הקו (אפשר 0/להסתיר) */
-    height: 130px;            /* ⚙️ שווה ל-height של העמודה */
+    width: 2px;
+    height: 60px;            /* ⚙️ להתאים לחלון (היה 130px) */
     background-color: var(--primary-text-color);
     opacity: 0.9;
     /* לביטול מוחלט:
@@ -145,14 +146,14 @@ static styles = css`
   .timer-action-selector{
     display: flex;
     align-items: center;
-    justify-content: center;  /* מרכז את השורה */
+    justify-content: center;
     gap: 10px;
     z-index: 5;
     flex-wrap: wrap;
     margin-top: 12px;
   }
   .timer-action{
-    padding: 4px 10px;        /* ⚙️ “גודל” הכפתור */
+    padding: 4px 10px;
     border-radius: 16px;
   }
   .pointer-cursor{ cursor: pointer; }
@@ -166,16 +167,17 @@ static styles = css`
   .set-timer-button{
     display: block;
     padding: 10px 16px;
-    margin: 16px auto 0;      /* ממורכז ואחיד */
+    margin: 16px auto 0;
     background-color: var(--primary-color);
     color: #fff;
     border: none;
     border-radius: 6px;
     z-index: 5;
     cursor: pointer;
-    font-size: 16px;          /* 1rem ≈ 16px – כאן קיבענו לפיקסלים */
+    font-size: 16px;
   }
 `;
+
 
   // --- רינדור הכרטיס ---
   render() {
