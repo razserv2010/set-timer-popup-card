@@ -23,18 +23,13 @@ class SetTimerCard extends LitElement {
     .set-timer-card {
       overflow: hidden;
       height: 100%;
-      width: fit-content;
-      margin: 0 auto;
     }
-    .timer-card-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+
     .container ha-card {
       border: none !important;
       padding: 12px;
     }
+
     .timer-input-card {
       display: flex;
       align-items: center;
@@ -42,6 +37,7 @@ class SetTimerCard extends LitElement {
       gap: 15px;
       border: none !important;
     }
+
     .timer-input-wrapper {
       display: flex;
       justify-content: center;
@@ -49,28 +45,42 @@ class SetTimerCard extends LitElement {
       align-items: center;
       gap: 8px;
     }
-    .dimmed { opacity: 0.9; }
-    .timer-setting-text { font-size: 17px; }
+
+    .dimmed {
+      opacity: 0.9;
+    }
+
+    .timer-setting-text {
+      font-size: 17px;
+    }
+
     .column-titles {
       display: flex;
-      justify-content: center;
-      width: 100%;
     }
+
     .column-title {
       width: 90px;
       text-align: center;
       font-family: Arial, sans-serif;
     }
+
     .timer-columns-wrapper {
       width: fit-content;
       display: flex;
       align-items: center;
-      margin: 0 auto;
     }
+
     .timer-digit-column-wrapper {
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0),
+        rgba(0, 0, 0, 1) 40%,
+        rgba(0, 0, 0, 1) 60%,
+        rgba(0, 0, 0, 0)
+      );
       z-index: 2;
     }
+
     .timer-digit-column {
       display: flex;
       flex-direction: column;
@@ -79,22 +89,34 @@ class SetTimerCard extends LitElement {
       font-family: Arial, sans-serif;
       transition: transform 100ms ease;
     }
+
     .timer-digit {
       text-align: center;
       min-width: 85px;
       min-height: 55px;
     }
-    .digit-seperator { width: 4px; height: 130px; background-color: var(--primary-text-color); }
+
+    .digit-seperator {
+      width: 4px;
+      height: 130px;
+      background-color: var(--primary-text-color);
+    }
+
     .timer-action-selector {
       display: flex;
       align-items: center;
       z-index: 5;
       gap: 8px;
-      justify-content: center;
-      width: 100%;
     }
-    .timer-action { padding: 4px 6px; }
-    .pointer-cursor { cursor: pointer; }
+
+    .timer-action {
+      padding: 4px 6px;
+    }
+
+    .pointer-cursor {
+      cursor: pointer;
+    }
+
     .timer-action-active {
       color: var(--primary-background-color);
       background-color: var(--primary-text-color);
@@ -109,8 +131,6 @@ class SetTimerCard extends LitElement {
       z-index: 5;
       cursor: pointer;
       font-size: 1rem;
-      display: block;
-      margin: 8px auto 0;
     }
   `;
 
