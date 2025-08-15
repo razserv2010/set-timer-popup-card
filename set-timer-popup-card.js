@@ -46,43 +46,118 @@ class SetTimerCard extends LitElement {
   }
 
   static styles = css`
-    :host { display: flex; justify-content: center; width: 100%; }
-    .popup-title { width: 100%; text-align: center; font-weight: 700; font-size: 20px; margin: 4px 0 6px; line-height: 1.2; direction: rtl; }
-    .set-timer-card { overflow: hidden; width: fit-content; margin: 0 auto; border-radius: 12px; }
-    .timer-card-wrapper { display: flex; flex-direction: column; align-items: center; padding: 4px 8px 12px; }
-    .card-content { width: 100%; }
-    .timer-input-card { display: flex; align-items: center; flex-direction: column; gap: 14px; border: none !important; }
-    .timer-input-wrapper { display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 10px; }
-    .dimmed { opacity: 0.9; }
-    .timer-setting-text { font-size: 17px; }
+    .set-timer-card {
+      overflow: hidden;
+      height: 100%;
+    }
 
-    .column-titles { display: flex; justify-content: center; gap: 54px; width: 100%; }
-    .column-title { width: 90px; text-align: center; font-family: Arial, sans-serif; opacity: 0.85; transition: 120ms ease; }
-    .column-title.focused { font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+    .container ha-card {
+      border: none !important;
+      padding: 12px;
+    }
 
-    .timer-columns-wrapper { width: fit-content; display: flex; align-items: center; justify-content: center; gap: 28px; margin: 0 auto; position: relative; }
-    /* ביטול קו אופקי שהיה פעם */
-    .timer-columns-wrapper::after { content: none !important; display: none !important; }
+    .timer-input-card {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      gap: 15px;
+      border: none !important;
+    }
+
+    .timer-input-wrapper {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dimmed {
+      opacity: 0.9;
+    }
+
+    .timer-setting-text {
+      font-size: 17px;
+    }
+
+    .column-titles {
+      display: flex;
+    }
+
+    .column-title {
+      width: 90px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .timer-columns-wrapper {
+      width: fit-content;
+      display: flex;
+      align-items: center;
+    }
 
     .timer-digit-column-wrapper {
-      padding: 0 16px;
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0),
+        rgba(0, 0, 0, 1) 40%,
+        rgba(0, 0, 0, 1) 60%,
+        rgba(0, 0, 0, 0)
+      );
       z-index: 2;
-      height: 130px;
     }
-    .timer-digit-column { display: flex; flex-direction: column; height: 130px; font-size: 40px; font-family: Arial, sans-serif; transition: transform 100ms ease; will-change: transform; }
-    .timer-digit { text-align: center; min-width: 85px; min-height: 55px; line-height: 55px; }
 
-    .digit-seperator { width: 2px; height: 130px; background-color: var(--primary-text-color); opacity: 0.9; }
+    .timer-digit-column {
+      display: flex;
+      flex-direction: column;
+      height: 130px;
+      font-size: 40px;
+      font-family: Arial, sans-serif;
+      transition: transform 100ms ease;
+    }
 
-    .timer-action-selector { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px; width: 100%; margin-top: 12px; text-align: center; }
-    .timer-action { padding: 4px 10px; min-width: 90px; text-align: center; border-radius: 16px; }
-    .pointer-cursor { cursor: pointer; }
-    .timer-action-active { color: var(--primary-background-color); background-color: var(--primary-text-color); }
+    .timer-digit {
+      text-align: center;
+      min-width: 85px;
+      min-height: 55px;
+    }
 
-    .preview-time { margin-top: 8px; font-weight: 600; }
+    .digit-seperator {
+      width: 4px;
+      height: 130px;
+      background-color: var(--primary-text-color);
+    }
 
-    .set-timer-button { display: block; margin: 16px auto 0; padding: 10px 16px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    .timer-action-selector {
+      display: flex;
+      align-items: center;
+      z-index: 5;
+      gap: 8px;
+    }
+
+    .timer-action {
+      padding: 4px 6px;
+    }
+
+    .pointer-cursor {
+      cursor: pointer;
+    }
+
+    .timer-action-active {
+      color: var(--primary-background-color);
+      background-color: var(--primary-text-color);
+      border-radius: 17px;
+    }
+    .set-timer-button {
+      padding: 10px 16px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      z-index: 5;
+      cursor: pointer;
+      font-size: 1rem;
+    }
   `;
 
   // --- רינדור הכרטיס ---
@@ -142,7 +217,7 @@ class SetTimerCard extends LitElement {
           ` : "" }
 
           <button class="set-timer-button" @click="${this._submitAction}">
-            ${this.entityState == "idle" ? "הפעלת טיימר" : "ביטול טיימר"}
+            ${this.entityState == "idle" ? "אישור פעולות" : "ביטול טיימר"}
           </button>
         </div>
       </ha-card>
