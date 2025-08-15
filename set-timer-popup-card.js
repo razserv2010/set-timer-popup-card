@@ -21,7 +21,7 @@ class SetTimerCard extends LitElement {
 
     this.timerAction = "";
     this.focusedColumn = null;
-    this.hoursChanged = false; // כל עוד false - מציגים 00 ונועלים על 00
+    this.hoursChanged = false; // אם לא נגעו בשעות – נשאר 00
   }
 
   static styles = css`
@@ -39,8 +39,11 @@ class SetTimerCard extends LitElement {
     .column-title.focused { font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 
     .timer-columns-wrapper {
-      width: fit-content; display: flex; align-items: center; justify-content: center; gap: 28px; margin: 0 auto; position: relative;
+      width: fit-content; display: flex; align-items: center; justify-content: center; gap: 28px; margin: 0 auto;
+      position: relative;
     }
+    /* ביטול הקו האופקי */
+    .timer-columns-wrapper::after { content: none !important; display: none !important; }
 
     .timer-digit-column-wrapper {
       padding: 0 16px; /* הגדלת Hitbox */
@@ -164,7 +167,7 @@ class SetTimerCard extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
-    // בהצגה ראשונית: 00:00:00
+    // ברירת מחדל: 00:00:00 ממורכז
     this.hoursColumnMoveIndex = 1;
     this.minutesColumnMoveIndex = 1;
     this.secondsColumnMoveIndex = 1;
@@ -196,16 +199,13 @@ class SetTimerCard extends LitElement {
       return null;
     }
 
-    // כשהטיימר רץ: אם נשארו 0 שעות – להציג תמיד 00
-    if (remainingTime[0] === 0) {
-      this.hoursColumnMoveIndex = 0;
-      this.hoursChanged = false;
-    } else {
-      this.hoursColumnMoveIndex = remainingTime[0] + 1;
-      this.hoursChanged = true;
-    }
-    this.minutesColumnMoveIndex = remainingTime[1] + 1;
-    this.secondsColumnMoveIndex = remainingTime[2] + 1;
+    // כשהטיימר רץ: 0 -> מציגים תמיד 00 (אינדקס 1), אחרת value+1
+    this.hoursColumnMoveIndex   = (remainingTime[0] === 0) ? 1 : remainingTime[0] + 1;
+    this.minutesColumnMoveIndex = (remainingTime[1] === 0) ? 1 : remainingTime[1] + 1;
+    this.secondsColumnMoveIndex = (remainingTime[2] === 0) ? 1 : remainingTime[2] + 1;
+
+    // אם נשארו 0 שעות – לא נסמן שנגעו בהן
+    this.hoursChanged = this.hoursColumnMoveIndex > 1;
 
     this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
     this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
@@ -223,14 +223,13 @@ class SetTimerCard extends LitElement {
       switch (columnWrapperId) {
         case "hours-column": {
           newIndex = this.hoursColumnMoveIndex + indexChange;
-          // כל עוד לא נבחרו שעות >00 – נועלים על 00 (index 1)
+          // עד שלא בחרו שעה > 00 – נועלים על 00 (index 1)
           if (!this.hoursChanged && newIndex <= 1) {
             this.hoursColumnMoveIndex = 1;
             break;
           }
           if (newIndex < this.hoursMaxMoveIndex && newIndex >= 1) {
             this.hoursColumnMoveIndex = newIndex;
-            // שעות נחשבות "נבחרו" רק אם עברנו מעל 00
             this.hoursChanged = this.hoursColumnMoveIndex > 1;
             this._moveTimerColumn(this.hoursColumnMoveIndex, columnWrapperId);
           }
@@ -238,14 +237,14 @@ class SetTimerCard extends LitElement {
         }
         case "minutes-column":
           newIndex = this.minutesColumnMoveIndex + indexChange;
-          if (newIndex < this.minutesMaxMoveIndex && newIndex >= 0) {
+          if (newIndex < this.minutesMaxMoveIndex && newIndex >= 1) {
             this.minutesColumnMoveIndex = newIndex;
             this._moveTimerColumn(this.minutesColumnMoveIndex, columnWrapperId);
           }
           break;
         case "seconds-column":
           newIndex = this.secondsColumnMoveIndex + indexChange;
-          if (newIndex < this.secondsMaxMoveIndex && newIndex >= 0) {
+          if (newIndex < this.secondsMaxMoveIndex && newIndex >= 1) {
             this.secondsColumnMoveIndex = newIndex;
             this._moveTimerColumn(this.secondsColumnMoveIndex, columnWrapperId);
           }
@@ -274,14 +273,14 @@ class SetTimerCard extends LitElement {
       }
       case "minutes-column":
         newIndex = this.minutesColumnMoveIndex + indexChange;
-        if (newIndex < this.minutesMaxMoveIndex && newIndex >= 0) {
+        if (newIndex < this.minutesMaxMoveIndex && newIndex >= 1) {
           this.minutesColumnMoveIndex = newIndex;
           this._moveTimerColumn(this.minutesColumnMoveIndex, columnWrapperId);
         }
         break;
       case "seconds-column":
         newIndex = this.secondsColumnMoveIndex + indexChange;
-        if (newIndex < this.secondsMaxMoveIndex && newIndex >= 0) {
+        if (newIndex < this.secondsMaxMoveIndex && newIndex >= 1) {
           this.secondsColumnMoveIndex = newIndex;
           this._moveTimerColumn(this.secondsColumnMoveIndex, columnWrapperId);
         }
