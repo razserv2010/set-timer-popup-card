@@ -3,9 +3,8 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 class SetTimerCard extends LitElement {
-  // --- קלט מ-HA: מפעיל/עוצר interval כשמצב הישות משתנה ---
+  // מפעיל/עוצר interval כשמצב הישות משתנה
   set hass(hass) {
-    const prevHass = this._hass;
     this._hass = hass;
 
     const prevState = this.entityState;
@@ -43,8 +42,6 @@ class SetTimerCard extends LitElement {
     this.timerAction = "";
     this.focusedColumn = null;
     this.hoursChanged = false; // נעילה על 00 עד שבוחרים שעה > 00
-
-    // כפתורי פעולה יוסתרו מיד לאחר הפעלה עד לאישור מ-HA
     this._optimisticRunning = false;
 
     // גיאומטריה דינמית ליישור מדויק
@@ -118,6 +115,9 @@ class SetTimerCard extends LitElement {
     if (this.entityState == "set") actionClassList = "timer-action";
     else if (this.entityState == "idle") actionClassList = "timer-action pointer-cursor";
 
+    // הגנה: ייתכן ש־_hass עדיין לא הוזרק ברינדור ראשון
+    const currentAction = this._hass?.states?.[this.entity]?.attributes?.action;
+
     return html`
       <ha-card class="set-timer-card">
         <div class="timer-card-wrapper">
@@ -144,11 +144,11 @@ class SetTimerCard extends LitElement {
 
           ${ this._showActions() ? html`
             <div class="timer-action-selector ${this.entityState == "set" ? "dimmed" : ""}">
-              <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_on" ? "timer-action-active" : ""}"
+              <span class="${actionClassList} ${currentAction === "turn_on" ? "timer-action-active" : ""}"
                     id="turn_on" @click="${this._setTimerAction}" @touchstart="${this._setTimerAction}">הפעלה</span>
-              <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "turn_off" ? "timer-action-active" : ""}"
+              <span class="${actionClassList} ${currentAction === "turn_off" ? "timer-action-active" : ""}"
                     id="turn_off" @click="${this._setTimerAction}">כיבוי</span>
-              <span class="${actionClassList} ${this._hass.states[this.entity].attributes.action == "toggle" ? "timer-action-active" : ""}"
+              <span class="${actionClassList} ${currentAction === "toggle" ? "timer-action-active" : ""}"
                     id="toggle" @click="${this._setTimerAction}">החלפה</span>
             </div>
           ` : "" }
@@ -401,7 +401,7 @@ class SetTimerCard extends LitElement {
       const hVal = this.hoursChanged ? Math.max(0, this.hoursColumnMoveIndex - 1) : 0;
       const mVal = Math.max(0, this.minutesColumnMoveIndex - 1);
       const sVal = Math.max(0, this.secondsColumnMoveIndex - 1);
-      const actionToSend = this.timerAction || this._hass.states[this.entity]?.attributes?.action || "toggle";
+      const actionToSend = this.timerAction || this._hass?.states?.[this.entity]?.attributes?.action || "toggle";
 
       // הסתרת הכפתורים מיידית עד לאישור מהשרת
       this._optimisticRunning = true;
@@ -444,4 +444,6 @@ class SetTimerCard extends LitElement {
   getCardSize() { return 3; }
 }
 
-customElements.define("set-timer-popup-card", SetTimerCard);
+if (!customElements.get("set-timer-popup-card")) {
+  customElements.define("set-timer-popup-card", SetTimerCard);
+}
