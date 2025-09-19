@@ -1,3 +1,6 @@
+// set-timer-popup-card.js
+// מבוסס על הכרטיס שלך + תיקון RTL מלא בתוך ה-Web Component
+
 const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
@@ -43,150 +46,170 @@ class SetTimerCard extends LitElement {
     this._centerOffset = null;
     this._lastWrapperHeight = null;
     this._lastDigitHeight = null;
+
+    // RTL ברירת מחדל
+    this._rtl = true;
   }
 
-static styles = css`
-  .popup-title{
-    font-weight: 700;                 /* בולד */
-    text-decoration: underline;       /* קו תחתון */
-    text-underline-offset: 4px;       /* מרחק הקו מהטקסט */
-    font-size: 18px;
-    margin: 4px 0 6px;
-    text-align: center;
-    direction: rtl;
-  }
-  /* כרטיס */
-  .set-timer-card{
-    overflow: hidden;
-    height: 100%;
-    border-radius: 12px;
-  }
+  static styles = css`
+    :host {
+      direction: rtl;            /* 👈 כיווניות ברירת מחדל */
+      text-align: right;
+      contain: content;          /* מונע דליפה עיצובית ל-DOM חיצוני */
+    }
 
-  /* מעטפת פנימית */
-  .container ha-card{
-    border: none !important;
-    padding: 12px;
-  }
+    .popup-title{
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      font-size: 18px;
+      margin: 4px 0 6px;
+      text-align: center;
+      direction: rtl;
+    }
 
-  /* אזור הקלט */
-  .timer-input-card{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    gap: 15px;
-    border: none !important;
-  }
-  .timer-input-wrapper{
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  .dimmed{ opacity: 0.9; }
-  .timer-setting-text{ font-size: 17px; }
+    /* כרטיס */
+    .set-timer-card{
+      overflow: hidden;
+      height: 100%;
+      border-radius: 12px;
+      direction: rtl;
+    }
 
-  /* כותרות העמודות */
-  .column-titles{
-    display: flex;
-    justify-content: center;
-    gap: 54px;
-    width: 100%;
-  }
-  .column-title{
-    width: 60px;
-    text-align: center;
-    font-family: Arial, sans-serif;
-  }
+    /* מעטפת פנימית */
+    .container ha-card{
+      border: none !important;
+      padding: 12px;
+    }
 
-  /* שלוש העמודות הגוללות */
-  .timer-columns-wrapper{
-    width: fit-content;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 0 auto;
-  }
+    /* אזור הקלט */
+    .timer-input-card{
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      gap: 15px;
+      border: none !important;
+    }
+    .timer-input-wrapper{
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .dimmed{ opacity: 0.9; }
+    .timer-setting-text{ font-size: 17px; }
 
-  .timer-digit-column-wrapper{
-    /* חלון תצוגה בגובה קבוע */
-    height: 80px;            /* ⚙️ גובה החלון (כמו שביקשת) */
-    padding: 0 2px;
-    /* ⚙️ מסכה רחבה יותר כדי שספרה שלמה תיראה מיד */
-    mask-image: linear-gradient(
-      to bottom,
-      rgba(0,0,0,0) 0%,
-      rgba(0,0,0,1) 8%,
-      rgba(0,0,0,1) 92%,
-      rgba(0,0,0,0) 100%
-    );
-    z-index: 2;
-  }
+    /* כותרות העמודות */
+    .column-titles{
+      display: flex;
+      justify-content: center;
+      gap: 54px;
+      width: 100%;
+      direction: rtl;
+      text-align: center;
+    }
+    .column-title{
+      width: 60px;
+      font-family: Arial, sans-serif;
+    }
 
-  .timer-digit-column{
-    display: flex;
-    flex-direction: column;
-    height: 130px;            /* ⚙️ להתאים לחלון ↑ (היה 130px) */
-    font-size: 36px;         /* ⚙️ טיפה קטן כדי לשבת טוב בשורה של 50px */
-    font-family: Arial, sans-serif;
-    transition: transform 100ms ease;
-    will-change: transform;
-  }
+    /* שלוש העמודות הגוללות */
+    .timer-columns-wrapper{
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 auto;
+      direction: ltr;            /* 👈 המספרים עצמם לוגית LTR */
+    }
 
-  .timer-digit{
-    text-align: center;
-    min-width: 85px;         /* רוחב עמודה */
-    min-height: 65px;        /* ⚙️ גובה שורה (היה 55px) */
-    line-height: 40px;       /* ⚙️ חייב להיות שווה ל-min-height */
-  }
+    .timer-digit-column-wrapper{
+      /* חלון תצוגה בגובה קבוע */
+      height: 80px;            /* ⚙️ גובה החלון */
+      padding: 0 2px;
+      /* ⚙️ מסכה רחבה יותר כדי שספרה שלמה תיראה מיד */
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0) 0%,
+        rgba(0,0,0,1) 8%,
+        rgba(0,0,0,1) 92%,
+        rgba(0,0,0,0) 100%
+      );
+      z-index: 2;
+    }
 
-  .digit-seperator{
-    width: 2px;
-    height: 60px;            /* ⚙️ להתאים לחלון (היה 130px) */
-    background-color: var(--primary-text-color);
-    opacity: 0.9;
-    /* לביטול מוחלט:
-    display: none;
-    */
-  }
+    .timer-digit-column{
+      display: flex;
+      flex-direction: column;
+      height: 130px;            /* ⚙️ להתאים לחלון ↑ */
+      font-size: 36px;
+      font-family: Arial, sans-serif;
+      transition: transform 100ms ease;
+      will-change: transform;
+    }
 
-  /* כפתורי פעולה */
-  .timer-action-selector{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    z-index: 5;
-    flex-wrap: wrap;
-    margin-top: 12px;
-  }
-  .timer-action{
-    padding: 4px 10px;
-    border-radius: 16px;
-  }
-  .pointer-cursor{ cursor: pointer; }
-  .timer-action-active{
-    color: var(--primary-background-color);
-    background-color: var(--primary-text-color);
-    border-radius: 17px;
-  }
+    .timer-digit{
+      text-align: center;
+      min-width: 85px;         /* רוחב עמודה */
+      min-height: 65px;        /* ⚙️ גובה שורה */
+      line-height: 40px;       /* ⚙️ */
+    }
 
-  /* כפתור תחתון */
-  .set-timer-button{
-    display: block;
-    padding: 10px 16px;
-    margin: 16px auto 0;
-    background-color: rgb(13, 255, 0);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    z-index: 5;
-    cursor: pointer;
-    font-size: 16px;
-  }
-`;
+    .digit-seperator{
+      width: 2px;
+      height: 60px;            /* ⚙️ להתאים לחלון */
+      background-color: var(--primary-text-color);
+      opacity: 0.9;
+    }
 
+    /* כפתורי פעולה */
+    .timer-action-selector{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 5;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      direction: rtl;           /* טקסטים בעברית */
+    }
+    .timer-action{
+      padding: 4px 10px;
+      border-radius: 16px;
+      cursor: default;
+    }
+    .pointer-cursor{ cursor: pointer; }
+    .timer-action-active{
+      color: var(--primary-background-color);
+      background-color: var(--primary-text-color);
+      border-radius: 17px;
+    }
+
+    /* כפתור תחתון */
+    .set-timer-button{
+      display: block;
+      padding: 10px 16px;
+      margin: 16px auto 0;
+      background-color: rgb(13, 255, 0);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      z-index: 5;
+      cursor: pointer;
+      font-size: 16px;
+      direction: rtl;
+    }
+
+    /* תצוגת זמן מקדימה */
+    .preview-time{
+      margin-top: 6px;
+      font-family: monospace;
+      direction: ltr;           /* שמירת פורמט HH:MM:SS קריא */
+      text-align: center;
+    }
+  `;
 
   // --- רינדור הכרטיס ---
   render() {
@@ -326,6 +349,8 @@ static styles = css`
 
   connectedCallback() {
     super.connectedCallback();
+    // נצמיד RTL ל-host כדי שלא נירש LTR מהדיאלוג של browser_mod
+    if (this._rtl) this.setAttribute('dir', 'rtl');
     this._resetToZero(); // רק אינדקסים; ההזזה תיעשה ב-updated()
     if (this.entityState == "set") this._startIntervalUpdater();
   }
@@ -519,6 +544,11 @@ static styles = css`
     if (!config.entity.startsWith("switch_timer.")) throw new Error("The supplied entity is not a valid 'switch_timer' entity");
     this.entity = config.entity;
     this.cardTitle = typeof config.title === "string" ? config.title : "";
+    // שליטה אופציונלית ברמת הקונפיג
+    if (typeof config.rtl === "boolean") {
+      this._rtl = config.rtl;
+      if (this._rtl) this.setAttribute('dir', 'rtl'); else this.removeAttribute('dir');
+    }
   }
 
   getCardSize() { return 3; }
