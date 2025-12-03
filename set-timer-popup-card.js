@@ -24,7 +24,6 @@ class SetTimerCard extends LitElement {
 
     constructor() {
         super();
-        // אינדקס 1 = "00" (יש שורה ריקה לפני)
         this.hoursColumnMoveIndex = 0;
         this.minutesColumnMoveIndex = 0;
         this.secondsColumnMoveIndex = 0;
@@ -35,14 +34,13 @@ class SetTimerCard extends LitElement {
 
         this.timerAction = "";
         this.focusedColumn = null;
-        this.hoursChanged = false;    // עד שלא בחרו שעה > 00
-        this._optimisticRunning = false; // הסתרת כפתורים מיד אחרי "הפעלת טיימר"
+        this.hoursChanged = false;
+        this._optimisticRunning = false;
 
-        // גיאומטריה דינמית ליישור מדויק
         this._digitHeight = null;
         this._centerOffset = null;
         this._lastWrapperHeight = null;
-        this.digitH_Lovelace = 40; // נתון קבוע לחישובים מוקדמים
+        this.digitH_Lovelace = 40;
     }
 
     static styles = css`
@@ -91,11 +89,11 @@ class SetTimerCard extends LitElement {
         .column-titles{
             display: flex;
             justify-content: center;
-            gap: 25px; /* הותאם ליישור LTR */
+            gap: 25px; 
             width: 100%;
         }
         .column-title{
-            width: 85px; /* הותאם ליישור LTR */
+            width: 85px; 
             text-align: center;
             font-family: Arial, sans-serif;
         }
@@ -106,7 +104,7 @@ class SetTimerCard extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px; /* הותאם ליישור LTR */
+            gap: 15px;
             margin: 0 auto;
         }
 
@@ -147,7 +145,6 @@ class SetTimerCard extends LitElement {
             height: 60px;
             background-color: var(--primary-text-color);
             opacity: 0.9;
-            /* לביטול מוחלט: display: none; */
         }
 
         /* כפתורי פעולה */
@@ -159,7 +156,7 @@ class SetTimerCard extends LitElement {
             z-index: 5;
             flex-wrap: wrap;
             margin-top: 12px;
-            direction: rtl; /* כפתורי ההפעלה נשארים RTL לצורך קריאה בעברית */
+            direction: rtl; 
         }
         .timer-action{
             padding: 4px 10px;
@@ -253,14 +250,12 @@ class SetTimerCard extends LitElement {
 
     // --- הזזת עמודות רק אחרי רינדור! ---
     updated() {
-        // אחרי כל עדכון, יישר את שלושת העמודות למרכז לפי האינדקסים הנוכחיים
         this._moveTimerColumn(this.hoursColumnMoveIndex, "hours-column");
         this._moveTimerColumn(this.minutesColumnMoveIndex, "minutes-column");
         this._moveTimerColumn(this.secondsColumnMoveIndex, "seconds-column");
     }
 
     _showActions() {
-        // מציגים את כפתורי הפעולה רק כשהטיימר לא רץ, וגם לא במצב אופטימי בדיוק אחרי הפעלה
         return this.entityState !== "set" && !this._optimisticRunning;
     }
 
@@ -325,7 +320,7 @@ class SetTimerCard extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this._resetToZero(); // רק אינדקסים; ההזזה תיעשה ב-updated()
+        this._resetToZero();
         if (this.entityState == "set") this._startIntervalUpdater();
     }
     disconnectedCallback() {
@@ -357,7 +352,6 @@ class SetTimerCard extends LitElement {
         const mm = remainingM - remainingH * 60;
         const ss = remainingS - remainingM * 60;
 
-        // 0 -> index 1 (00), אחרת value+1
         this.hoursColumnMoveIndex    = (remainingH === 0) ? 1 : remainingH + 1;
         this.minutesColumnMoveIndex = (mm === 0)         ? 1 : mm + 1;
         this.secondsColumnMoveIndex = (ss === 0)         ? 1 : ss + 1;
@@ -439,7 +433,8 @@ class SetTimerCard extends LitElement {
     // ---- יישור מדויק: חישוב Offset מרכזי דינמי ----
     _ensureGeometry(wrapper, column) {
         const sample = column.querySelector('.timer-digit:nth-child(2)') || column.querySelector('.timer-digit');
-        const wrapperH = wrapper ? wrapper.clientHeight : 80; // הותאם ל-CSS
+        // גובה ה-Wrapper הוא 80px כפי שהוגדר ב-CSS
+        const wrapperH = wrapper ? wrapper.clientHeight : 80;
         const digitH = sample ? sample.clientHeight : this.digitH_Lovelace; // 40px
 
         if (this._lastWrapperHeight !== wrapperH || this._lastDigitHeight !== digitH) {
@@ -452,7 +447,7 @@ class SetTimerCard extends LitElement {
 
     _moveTimerColumn(columnMoveIndex, columnWrapperId) {
         const root = this.renderRoot || this.shadowRoot;
-        if (!root) return; // עדיין לא רונדר – נוותר, updated יקרא שוב
+        if (!root) return;
         const wrapper = root.querySelector(`#${columnWrapperId}`);
         if (!wrapper) return;
         const column = wrapper.querySelector('.timer-digit-column');
@@ -462,7 +457,7 @@ class SetTimerCard extends LitElement {
 
         const digitH = this._digitHeight ?? this.digitH_Lovelace;
         const offset = this._centerOffset ?? 0;
-        const y = -(columnMoveIndex * digitH) + offset; // מרכז את הערך הנבחר
+        const y = -(columnMoveIndex * digitH) + offset;
         column.style.transform = `translateY(${y}px)`;
     }
     // ------------------------------------------------
@@ -472,7 +467,7 @@ class SetTimerCard extends LitElement {
             this.renderRoot?.querySelectorAll?.(".timer-action")?.forEach?.((b) => b.classList.remove("timer-action-active"));
             const button = clickEvent.currentTarget;
             button.classList.add("timer-action-active");
-            this.timerAction = button.id; // turn_on/turn_off/toggle
+            this.timerAction = button.id;
         }
     }
 
@@ -487,4 +482,42 @@ class SetTimerCard extends LitElement {
     _submitAction() {
         if (this.entityState == "idle") {
             const pad = (n) => String(n).padStart(2, "0");
-            const hVal = this.hoursChanged ? Math.max(0, this.hoursColumnMove
+            const hVal = this.hoursChanged ? Math.max(0, this.hoursColumnMoveIndex - 1) : 0;
+            const mVal = Math.max(0, this.minutesColumnMoveIndex - 1);
+            const sVal = Math.max(0, this.secondsColumnMoveIndex - 1);
+            const actionToSend = this.timerAction || this._hass?.states?.[this.entity]?.attributes?.action || "toggle";
+
+            this._optimisticRunning = true;
+            this.requestUpdate();
+
+            this._hass.callService("switch_timer", "set_timer", {
+                entity_id: this.entity,
+                action: actionToSend,
+                duration: `${pad(hVal)}:${pad(mVal)}:${pad(sVal)}`,
+            });
+
+            this._startIntervalUpdater();
+            this.focusedColumn = null;
+            setTimeout(() => this.requestUpdate(), 200);
+        } else if (this.entityState == "set") {
+            this._stopIntervalUpdater();
+            this._hass.callService("switch_timer", "cancel_timer", { entity_id: this.entity });
+            this._optimisticRunning = false;
+            this._resetToZero();
+            setTimeout(() => { this.requestUpdate(); }, 200);
+        }
+    }
+
+    setConfig(config) {
+        if (!config.entity) throw new Error("No timer entity supplied");
+        if (!config.entity.startsWith("switch_timer.")) throw new Error("The supplied entity is not a valid 'switch_timer' entity");
+        this.entity = config.entity;
+        this.cardTitle = typeof config.title === "string" ? config.title : "";
+    }
+
+    getCardSize() { return 3; }
+}
+
+if (!customElements.get("set-timer-popup-card")) {
+    customElements.define("set-timer-popup-card", SetTimerCard);
+}
